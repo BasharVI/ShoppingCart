@@ -41,6 +41,7 @@ router.get('/add-products',(req,res,next)=>{
 router.post('/add-products',(req,res,next)=>{
   res.send('got it')
   console.log(req.body);
+  console.log(req.files.Image);
 })
 
 module.exports = router;

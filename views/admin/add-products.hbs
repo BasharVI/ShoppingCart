@@ -4,7 +4,7 @@
     <div class="row">
         <div class="col-md-6">
         
-        <form action="/admin/add-products" method="post">
+        <form action="/admin/add-products" enctype="multipart/form-data" method="post">
             <label for="Name">Product Name</label><br>
             <input type="text" name="Name" class="form-control" ><br>
 
@@ -16,6 +16,9 @@
 
             <label for="Description">Description</label><br>
             <input type="text" name="Description" class="form-control"><br>
+
+            <label for="Image">Image</label><br>
+            <input type="file" name="Image" class="form-control"><br>
 
 
             <button type="submit" class="btn btn-success mt-4">Submit</button>
