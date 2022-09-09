@@ -1,5 +1,7 @@
 var express = require('express');
+const { ObjectId } = require('mongodb');
 var router = express.Router();
+var MongoClient = require('mongodb').MongoClient
 
 
 /* GET users listing. */
@@ -39,9 +41,33 @@ router.get('/add-products',(req,res,next)=>{
   res.render('admin/add-products',{admin:true})
 })
 router.post('/add-products',(req,res,next)=>{
-  res.send('got it')
-  console.log(req.body);
-  console.log(req.files.Image);
-})
+
+  MongoClient.connect('mongodb://localhost:27017',function(err,client){
+    if (err)
+    console.log('error');
+    else
+    console.log('datatbase connected');
+    client.db('shopping').collection('Products').insertOne(req.body).then(result=>{
+    
+      let image=req.files.Image
+      
+      image.mv('./public/product-images/'+result.insertedId+'.jpg',(err)=>{
+        if(err)
+        throw err;
+        else
+        res.render('admin/add-products',{admin:true})
+      })
+
+
+    })
+
+      
+    })
+      
+      
+    
+
+  })
+
 
 module.exports = router;
