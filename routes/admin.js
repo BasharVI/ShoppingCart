@@ -11,7 +11,6 @@ router.get('/', function(req, res, next) {
     if (err)
     console.log('error');
     else
-    //console.log('datatbase connected');
     function getallproducts(){
       return new Promise (async(resolve,reject)=>{
         let products=await client.db('shopping').collection('Products').find().toArray()
@@ -34,8 +33,7 @@ router.post('/add-products',(req,res,next)=>{
     if (err)
     console.log('error');
     else
-    //console.log('datatbase connected');
-    client.db('shopping').collection('Products').insertOne(req.body).then(id=>{
+      client.db('shopping').collection('Products').insertOne(req.body).then(id=>{
     
       let image=req.files.Image
       let imgid=id.insertedId
@@ -46,17 +44,9 @@ router.post('/add-products',(req,res,next)=>{
         else
         res.render('admin/add-products',{admin:true})
       })
-
-
-    })
-
-      
-    })
-      
-      
-    
-
+     })
   })
+ })
 
 
 module.exports = router;
