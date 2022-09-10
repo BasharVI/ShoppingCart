@@ -5,7 +5,12 @@ const { response } = require('express');
 var MongoClient = require('mongodb').MongoClient
 
 /* GET home page. */
+
 router.get('/', function (req, res, next) {
+
+  let user=req.session.user
+  
+
   MongoClient.connect('mongodb://localhost:27017', function (err, client) {
     if (err)
       console.log('error');
@@ -14,7 +19,7 @@ router.get('/', function (req, res, next) {
         return new Promise(async (resolve, reject) => {
           let products = await client.db('shopping').collection('Products').find().toArray()
           resolve(products)
-          res.render('user/view-products', { admin: false, products })
+          res.render('user/view-products', { admin: false, products,user })
         })
 
       }
@@ -75,17 +80,17 @@ router.post('/login', (req, res) => {
 
                 response.user = user
                 response.status = true
-                resolve({ status: true })
+                resolve({ status:true,user})
 
               } else {
-
+                console.log('erorrrrr');
                 resolve({ status: false })
               }
 
 
             })
           } else {
-
+            console.log('erro');
             resolve({ status: false })
           }
 
@@ -94,8 +99,12 @@ router.post('/login', (req, res) => {
 
       }
     dologin().then((response) => {
-
+      
       if (response.status) {
+       
+        req.session.loggedIn=true
+        req.session.user=response.user
+        
         res.redirect('/')
       } else {
         res.redirect('/login')
@@ -106,6 +115,11 @@ router.post('/login', (req, res) => {
   })
 
 
+})
+
+router.get('/logout',(req,res)=>{
+ req.session.destroy()
+ res.redirect('/')
 })
 
 
