@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
 const { response } = require('express');
+const { ObjectId } = require('mongodb');
 var MongoClient = require('mongodb').MongoClient
 const verifyLogin=(req,res,next)=>{
   if (req.session.loggedIn){
@@ -144,8 +145,96 @@ router.get('/logout',(req,res)=>{
 })
 
 router.get('/cart',verifyLogin,(req,res)=>{
-  res.render('user/cart')
+
+  let userid=req.session.user._id
+
+  MongoClient.connect('mongodb://localhost:27017', function (err, client) {
+    if (err)
+      console.log('error');
+    else
+    function getcartProducts(){
+      return new Promise(async(resolve ,reject)=>{
+        let cartItems=await client.db('shopping').collection('cart').aggregate([
+          {
+            $match:{user:ObjectId(userid)}
+          },
+          {
+            $lookup:{
+              from:'Products',
+              let:{proList:'$products'},
+              pipeline:[{
+                $match:{
+                  $expr:{
+                    $in:['$_id','$$proList']
+                  }
+                }
+              }],
+              as:'cartItems'
+            }
+          }
+
+        ]).toArray()
+          resolve(cartItems[0].cartItems)
+        
+        
+        
+      })
+    }
+    getcartProducts().then((response)=>{
+      let products=response
+      res.render('user/cart',{products,user:req.session.user})
+    })
+    
+  })
+
+  
 })
 
+router.get('/add-to-cart/:id',verifyLogin,(req,res)=>{
+
+  let proid=req.params.id
+  
+  let userid=req.session.user
+
+
+  MongoClient.connect('mongodb://localhost:27017', function (err, client) {
+    if (err)
+      console.log('error');
+    else
+
+  function addtoCart(){
+    return new Promise (async(resolve,reject)=>{
+      let usercart=await client.db('shopping').collection('cart').findOne({user:ObjectId(userid._id)})
+      if (usercart){
+        client.db('shopping').collection('cart')
+        .updateOne({user:ObjectId(userid._id)},
+            {
+              $push:{products:ObjectId(proid)}
+
+            }
+        ).then((response)=>{
+          resolve()
+        })
+
+      }else{
+        let cartobj={
+          user:ObjectId(userid._id),
+          products:[ObjectId(proid)]
+        }
+
+        client.db('shopping').collection('cart').insertOne(cartobj).then((response)=>{
+          resolve()
+        })
+
+      }
+    })
+  }
+  addtoCart().then(()=>{
+    res.redirect('/')
+  })
+
+})
+
+})
 
 module.exports = router;
