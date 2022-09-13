@@ -188,33 +188,54 @@ router.get('/cart', verifyLogin, (req, res) => {
               $match: { user: ObjectId(userid) }
             },
             {
-              $lookup: {
-                from: 'Products',
-                let: { proList: '$products' },
-                pipeline: [{
-                  $match: {
-                    $expr: {
-                      $in: ['$_id', '$$proList']
-                    }
-                  }
-                }],
-                as: 'cartItems'
+              $unwind:'$products'
+            },
+            {
+              $project:{
+                items:'$products.items',
+                quantitty:'$products.quantity'
+              }
+              
+            },
+            {
+              $lookup:{
+                from:'Products',
+                localField:'items',
+                foreignField:'_id',
+                as:'product'
               }
             }
+            // {
+            //   $lookup: {
+            //     from: 'Products',
+            //     let: { proList: '$products' },
+            //     pipeline: [{
+            //       $match: {
+            //         $expr: {
+            //           $in: ['$_id', '$$proList']
+            //         }
+            //       }
+            //     }],
+            //     as: 'cartItems'
+            //   }
+            // }
 
           ]).toArray()
-          resolve(cartItems[0])
+          
+          resolve(cartItems)
 
 
         })
       }
     getcartProducts().then((response) => {
-      let product = response
-
-      if (product == null) {
+      let products = response
+      console.log(products);
+      console.log(products[0].product);
+      if (products == null) {
         res.render('user/cart')
       } else {
-        let products = product.cartItems
+        let quantity = products.quantitty
+        
         res.render('user/cart', { products, user: req.session.user })
       }
 
@@ -238,23 +259,40 @@ router.get('/add-to-cart/:id', verifyLogin, (req, res) => {
     else
 
       function addtoCart() {
+        let prObj={
+          items:ObjectId(proid),
+          quantity:1
+        }
         return new Promise(async (resolve, reject) => {
           let usercart = await client.db('shopping').collection('cart').findOne({ user: ObjectId(userid._id) })
           if (usercart) {
-            client.db('shopping').collection('cart')
+            let proExist=usercart.products.findIndex(product=>product.items==proid)
+            console.log(proExist)
+            if (proExist!=-1){
+              client.db('shopping').collection('cart').updateOne({'products.items':ObjectId(proid)},
+              {
+                $inc:{'products.$.quantity':1}
+              }).then(()=>{
+                resolve()
+              })
+
+            }else {
+              client.db('shopping').collection('cart')
               .updateOne({ user: ObjectId(userid._id) },
                 {
-                  $push: { products: ObjectId(proid) }
+                  $push: { products: prObj }
 
                 }
               ).then((response) => {
                 resolve()
               })
+            }
+           
 
           } else {
             let cartobj = {
               user: ObjectId(userid._id),
-              products: [ObjectId(proid)]
+              products: [prObj]
             }
 
             client.db('shopping').collection('cart').insertOne(cartobj).then((response) => {
