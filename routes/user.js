@@ -45,7 +45,7 @@ router.get('/', function (req, res, next) {
             count = cart.products.length
           }
         } else {
-          count = 0
+          count = null
         }
         resolve(count)
 
@@ -271,5 +271,39 @@ router.get('/add-to-cart/:id', verifyLogin, (req, res) => {
   })
 
 })
+router.get('/delete-cartproduct/:id',(req,res)=>{
+  let proId=req.params.id
+  
+  let user=req.session.user
+  ;
+  
+  MongoClient.connect('mongodb://localhost:27017',function(err,client){
+    if (err)
+    console.log('error');
+    else
+    function deletecartProduct(){
+      return new Promise ((resolve,reject)=>{
+        client.db('shopping').collection('cart')
+        .updateOne({user:ObjectId(user._id)},
+        {
+          $pull:{ products: ObjectId(proId) }
+        
+        }).then((response)=>{
+          
+          resolve (response)
+        })
+        
+        
+      })
+     
+    }
+    deletecartProduct().then((response)=>{
+      
+      res.redirect('/cart')
+    })
+ 
+  })
+
+ })
 
 module.exports = router;
