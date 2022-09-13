@@ -20,9 +20,11 @@
                     <td>
                         <button class="cart-items-count mr-3">-</button>{{this.quantitty}}<button class="cart-items-count ml-3">+</button>
                     </td>
+                    {{#each product}}
                     <td>
                         <a href="/delete-cartproduct/{{this._id}}"class="btn btn-danger">Remove</a>
                     </td>
+                    {{/each}}
                 </tr>
                 {{/each}}
             </tbody>

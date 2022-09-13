@@ -230,7 +230,7 @@ router.get('/cart', verifyLogin, (req, res) => {
     getcartProducts().then((response) => {
       let products = response
       console.log(products);
-      console.log(products[0].product);
+      
       if (products == null) {
         res.render('user/cart')
       } else {
@@ -312,9 +312,8 @@ router.get('/add-to-cart/:id', verifyLogin, (req, res) => {
 router.get('/delete-cartproduct/:id',(req,res)=>{
   let proId=req.params.id
   
-  let user=req.session.user
-  ;
-  
+  let user=req.session.user._id
+    
   MongoClient.connect('mongodb://localhost:27017',function(err,client){
     if (err)
     console.log('error');
@@ -322,9 +321,10 @@ router.get('/delete-cartproduct/:id',(req,res)=>{
     function deletecartProduct(){
       return new Promise ((resolve,reject)=>{
         client.db('shopping').collection('cart')
-        .updateOne({user:ObjectId(user._id)},
+        .updateOne({user:ObjectId(user)},
+        
         {
-          $pull:{ products: ObjectId(proId) }
+          $pull:{ products: {items:ObjectId(proId)} }
         
         }).then((response)=>{
           
