@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
-const { response } = require('express');
+const { response, Router } = require('express');
 const { ObjectId } = require('mongodb');
 const session = require('express-session');
 var MongoClient = require('mongodb').MongoClient
@@ -204,21 +204,15 @@ router.get('/cart', verifyLogin, (req, res) => {
                 foreignField:'_id',
                 as:'product'
               }
+            },
+            {
+              $project:{
+                items:1,
+                quantitty:1,
+                product:{$arrayElemAt:['$product',0]}
+              }
             }
-            // {
-            //   $lookup: {
-            //     from: 'Products',
-            //     let: { proList: '$products' },
-            //     pipeline: [{
-            //       $match: {
-            //         $expr: {
-            //           $in: ['$_id', '$$proList']
-            //         }
-            //       }
-            //     }],
-            //     as: 'cartItems'
-            //   }
-            // }
+
 
           ]).toArray()
           
@@ -230,6 +224,7 @@ router.get('/cart', verifyLogin, (req, res) => {
     getcartProducts().then((response) => {
       let products = response
       console.log(products);
+      console.log(products.product);
       
       if (products == null) {
         res.render('user/cart')
@@ -338,6 +333,46 @@ router.get('/delete-cartproduct/:id',(req,res)=>{
     deletecartProduct().then((response)=>{
       
       res.redirect('/cart')
+    })
+ 
+  })
+
+})
+
+ router.post('/change-product-quantity',(req,res)=>{
+  console.log(req.body);
+  MongoClient.connect('mongodb://localhost:27017',function(err,client){
+    if (err)
+    console.log('error');
+    else
+    function changeProductQuantity(){
+      let count=parseInt(req.body.count)
+      
+      let quantity=parseInt(req.body.quantity)
+      
+      let cart= req.body.cart
+      
+      prod=req.body.product
+      
+      return new Promise ((resolve,reject)=>{
+        client.db('shopping').collection('cart')
+        .updateOne({_id:ObjectId(cart), 'products.items':ObjectId(prod)},
+        
+        {
+          $inc:{'products.$.quantity':count }
+        
+        }).then((response)=>{
+          
+          resolve (response)
+        })
+        
+        
+      })
+     
+    }
+    changeProductQuantity().then((response)=>{
+      
+      res.json(response)
     })
  
   })

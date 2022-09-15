@@ -12,19 +12,24 @@
             <tbody>
                 {{#each products}}
                 <tr>
-                    {{#each this.product}}
-                    <td><img style="width: 50px;height:70px" src="/product-images/{{this._id}}.jpg" alt=""></td>
-                    <td>{{this.Name}}</td>
-                    <td>Rs.{{this.price}}</td>
-                    {{/each}}
+                    
+                    <td><img style="width: 50px;height:70px" src="/product-images/{{this.product._id}}.jpg" alt=""></td>
+                    <td>{{this.product.Name}}</td>
+                    <td>Rs.{{this.product.price}}</td>
+                   
                     <td>
-                        <button class="cart-items-count mr-3">-</button>{{this.quantitty}}<button class="cart-items-count ml-3">+</button>
+                        
+                        <button class="cart-items-count mr-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','-1')">-</button>
+                        
+                        <span id="{{this.product._id}}">{{this.quantitty}}</span>
+
+                        <button class="cart-items-count ml-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','1')">+</button>
                     </td>
-                    {{#each product}}
+                    
                     <td>
                         <a href="/delete-cartproduct/{{this._id}}"class="btn btn-danger">Remove</a>
                     </td>
-                    {{/each}}
+                   
                 </tr>
                 {{/each}}
             </tbody>
@@ -32,3 +37,28 @@
         </table>
     </div>
 </section>
+
+<script>
+    function changeQuantity(cartId,proId,count){
+        
+        let quantity= parseInt(document.getElementById(proId).innerHTML)
+        count=parseInt(count)
+        $.ajax(
+            {   
+                url:'/change-product-quantity',
+                data:{
+                    cart:cartId,
+                    product:proId,
+                    count:count,
+                    quantity:quantity  
+                },
+                method:'post',
+                success:(response)=>{
+                    document.getElementById(proId).innerHTML=quantity+count
+                }
+
+            }
+        )
+        
+    }
+</script>
