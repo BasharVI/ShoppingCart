@@ -74,7 +74,7 @@ router.post('/add-products',(req,res,next)=>{
  
   })
 
- })
+ }) 
 
  router.get('/edit-product/:id',async(req,res)=>{
 
@@ -154,6 +154,31 @@ router.post('/add-products',(req,res,next)=>{
   
   
  })
+
+ router.get('/all-users',(req,res)=>{
+
+  MongoClient.connect('mongodb://localhost:27017',function(err,client){
+    if (err)
+    console.log('error');
+    else
+    function getallUsers(){
+      return new Promise ((resolve,reject)=>{
+
+       let allusers= client.db('shopping').collection('users').find().toArray()
+       resolve (allusers)
+      
+      })
+     
+    }getallUsers().then((response)=>{
+      users=response
+      res.render('admin/all-users',{admin:true,users})
+    })
+      
+    
+    
+  })
+  
+})
 
 
 
