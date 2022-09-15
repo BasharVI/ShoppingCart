@@ -1,0 +1,36 @@
+<section>
+    <div class="col-md-4 details mt-5 ml-5">
+        <h4>Enter Details</h4>
+    <div class="container mt-5">
+        
+            <form action="">
+                <label for="address">Address</label>
+                <textarea rows="3" cols="30" name="address" class="form-control"></textarea>
+
+                <label for="pincode">Pincode</label>
+                <input type="text" name="pincode" class="form-control">
+
+                <label for="mobile">Mobile Number</label>
+                <input type="tel" name="mobile" class="form-control">
+                
+            </form>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="container mt-5 ml-5 checkout">
+            <h5>Total Amount : Rs. {{total}} /-</h5>
+            <br>
+            <div class="payment">
+                <p>Payment method</p>
+                <label class="radio-inline">
+                <input type="radio" name="payment method" value="COD">COD
+                </label>
+                <label class="radio-inline">
+                <input type="radio" name="payment method" value="ONLINE">Online payment
+                </label>
+                <button class="btn btn-primary float-right">Checkout</button>
+            </div>
+        </div>
+    </div>
+    
+</section>

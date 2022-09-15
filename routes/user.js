@@ -307,7 +307,8 @@ router.get('/add-to-cart/:id', verifyLogin, (req, res) => {
 router.get('/delete-cartproduct/:id',(req,res)=>{
   let proId=req.params.id
   
-  let user=req.session.user._id
+  let user=req.session.user
+  
     
   MongoClient.connect('mongodb://localhost:27017',function(err,client){
     if (err)
@@ -316,7 +317,7 @@ router.get('/delete-cartproduct/:id',(req,res)=>{
     function deletecartProduct(){
       return new Promise ((resolve,reject)=>{
         client.db('shopping').collection('cart')
-        .updateOne({user:ObjectId(user)},
+        .updateOne({user:ObjectId(user._id)},
         
         {
           $pull:{ products: {items:ObjectId(proId)} }
@@ -340,7 +341,7 @@ router.get('/delete-cartproduct/:id',(req,res)=>{
 })
 
  router.post('/change-product-quantity',(req,res)=>{
-  console.log(req.body);
+  
   MongoClient.connect('mongodb://localhost:27017',function(err,client){
     if (err)
     console.log('error');
@@ -378,5 +379,73 @@ router.get('/delete-cartproduct/:id',(req,res)=>{
   })
 
  })
+ router.get('/place-order',verifyLogin, (req,res)=>{
 
+  let user=req.session.user._id
+  console.log(user);
+  
+  MongoClient.connect('mongodb://localhost:27017',  function (err, client) {
+    if (err)
+      console.log('error');
+    else
+      function getTotalAmount() {
+        return new Promise(async (resolve, reject) => {
+          let totalamount = await client.db('shopping').collection('cart').aggregate([
+            {
+              $match: { user: ObjectId(user) }
+            },
+            {
+              $unwind:'$products'
+            },
+            {
+              $project:{
+                items:'$products.items',
+                quantitty:'$products.quantity'
+              }
+              
+            },
+            {
+              $lookup:{
+                from:'Products',
+                localField:'items',
+                foreignField:'_id',
+                as:'product'
+              }
+            },
+            {
+              $project:{
+                items:1,
+                quantitty:1,
+                product:{$arrayElemAt:['$product',0]}
+              }
+            },
+            {
+              $group:{
+                _id:null,
+                total:{$sum:{$multiply:['$quantitty','$product.price']}}
+              }
+            }
+
+
+          ]).toArray()
+          
+          resolve(totalamount)
+
+
+        })
+      }
+      getTotalAmount().then((totalamount) => {
+        console.log(totalamount);
+        let total=totalamount[0].total
+      
+        res.render('user/place-orders',{total})
+
+    })
+
+  })
+  
+
+  
+ })
+ 
 module.exports = router;
