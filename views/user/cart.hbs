@@ -19,11 +19,11 @@
                    
                     <td>
                         
-                        <button class="cart-items-count mr-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','-1')">-</button>
+                        <button class="cart-items-count mr-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','-1','{{../user._id}}')">-</button>
                         
                         <span id="{{this.product._id}}">{{this.quantitty}}</span>
 
-                        <button class="cart-items-count ml-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','1')">+</button>
+                        <button class="cart-items-count ml-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','1','{{../user._id}}')">+</button>
                     </td>
                     
                     <td>
@@ -38,7 +38,7 @@
         <hr>
        <div class="float-right pr-5">
 
-        <h4 class="float-left  mr-5 ">Total Price: Rs.50000</h4>
+        <h4 class="float-left  mr-5 ">Total Price: Rs.<span id="total">{{total}}</span></h4>
         
         <br>
         <a href="/place-order" class="btn btn-success mt-3 " style="width: 100%;">Place Order</a>
@@ -48,14 +48,15 @@
 </section>
 
 <script>
-    function changeQuantity(cartId,proId,count){
-        
+    function changeQuantity(cartId,proId,count,userId){
+        console.log(userId)
         let quantity= parseInt(document.getElementById(proId).innerHTML)
         count=parseInt(count)
         $.ajax(
             {   
                 url:'/change-product-quantity',
                 data:{
+                    user:userId,
                     cart:cartId,
                     product:proId,
                     count:count,
@@ -64,6 +65,7 @@
                 method:'post',
                 success:(response)=>{
                     document.getElementById(proId).innerHTML=quantity+count
+                    document.getElementById('total').innerHTML=response.total
                 }
 
             }

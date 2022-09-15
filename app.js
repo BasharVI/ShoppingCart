@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(fileUpload())
-app.use(session({secret:'key',cookie:{maxAge:30000},resave: true,saveUninitialized: true}));
+app.use(session({secret:'key',cookie:{maxAge:300000},resave: true,saveUninitialized: true}));
 
 app.use('/', userRouter);
 app.use('/admin', adminRouter);
