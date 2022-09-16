@@ -541,7 +541,7 @@ router.get('/place-order', verifyLogin, (req, res) => {
 
       let total = totalamount[0].total
 
-      res.render('user/place-orders', { total })
+      res.render('user/place-orders', { total,user:req.session.user })
 
     })
 
@@ -549,6 +549,121 @@ router.get('/place-order', verifyLogin, (req, res) => {
 
 
 
+})
+
+
+router.post('/place-order',verifyLogin,(req,res)=>{
+  
+  userId=req.body.userId
+  console.log(req.body)
+
+  MongoClient.connect('mongodb://localhost:27017',function (err, client) {
+    if (err)
+      console.log('error');
+    else
+    function getcartproductList(){
+      return new Promise (async(resolve,reject)=>{
+        let cart =await client.db('shopping').collection('cart').findOne({user:ObjectId(userId)})
+        console.log(cart.products);
+        resolve(cart.products)
+      })
+    }
+    
+    
+    function getTotalAmount() {
+      return new Promise(async (resolve, reject) => {
+        let totalamount = await client.db('shopping').collection('cart').aggregate([
+          {
+            $match: { user: ObjectId(userId) }
+          },
+          {
+            $unwind: '$products'
+          },
+          {
+            $project: {
+              items: '$products.items',
+              quantitty: '$products.quantity'
+            }
+
+          },
+          {
+            $lookup: {
+              from: 'Products',
+              localField: 'items',
+              foreignField: '_id',
+              as: 'product'
+            }
+          },
+          {
+            $project: {
+              items: 1,
+              quantitty: 1,
+              product: { $arrayElemAt: ['$product', 0] }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: { $multiply: ['$quantitty', '$product.price'] } }
+            }
+          }
+
+
+        ]).toArray()
+
+        resolve(totalamount[0].total)
+
+
+      })
+    }
+    
+
+    
+    
+    function placeOrders(){
+      
+      return new Promise (async(resolve,reject)=>{
+        let total = await getTotalAmount()
+        
+        let products= await getcartproductList()
+        
+        let status=req.body['payment method']=='COD'?'Placed':'Pending'
+        let orderObj={
+          deliveryDetails:{
+            mobile:req.body.mobile,
+            address:req.body.address,
+            pincode:req.body.pincode,
+          },
+          userId:ObjectId(req.body.userId),
+          paymentMethod:req.body['payment method'],
+          products:products,
+          totalAmount:total,
+          status:status,
+          date:new Date()
+          
+          
+        }
+        client.db('shopping').collection('orders').insertOne(orderObj).then((response)=>{
+          console.log(response);
+          client.db('shopping').collection('cart').deleteOne({user:ObjectId(req.body.userId)})
+          resolve()
+        })
+      })
+    }
+    placeOrders().then((response)=>{
+      console.log(response);
+      res.json({status:true})
+
+    })
+       
+
+  })
+
+
+})
+
+router.get('/ordersuccess',(req,res)=>{
+  res.render('user/ordersuccess',{user:req.session.user})
 })
 
 module.exports = router;

@@ -3,7 +3,7 @@
         <h4>Enter Details</h4>
     <div class="container mt-5">
         
-            <form action="">
+            <form action="" id="checkout-form">
                 <label for="address">Address</label>
                 <textarea rows="3" cols="30" name="address" class="form-control"></textarea>
 
@@ -12,8 +12,10 @@
 
                 <label for="mobile">Mobile Number</label>
                 <input type="tel" name="mobile" class="form-control">
+
+                <input type="text" name="userId" value="{{user._id}}" hidden>
                 
-            </form>
+            
         </div>
     </div>
     <div class="col-md-4">
@@ -32,5 +34,23 @@
             </div>
         </div>
     </div>
-    
+    </form>
 </section>
+<script>
+    $('#checkout-form').submit((e)=>{
+        e.preventDefault()
+        $.ajax({
+            url:'/place-order',
+            method:'post',
+            data:$('#checkout-form').serialize(),
+            success:(response)=>{
+                
+                alert('order placed')
+                if(response.status){
+                    location.href='/ordersuccess'
+                }
+                
+            }
+        })
+    })
+</script>
