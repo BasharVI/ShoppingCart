@@ -665,5 +665,88 @@ router.post('/place-order',verifyLogin,(req,res)=>{
 router.get('/ordersuccess',(req,res)=>{
   res.render('user/ordersuccess',{user:req.session.user})
 })
+router.get('/orders',verifyLogin,(req,res)=>{
+
+  let userId=req.session.user._id
+  console.log(userId);
+
+  MongoClient.connect('mongodb://localhost:27017',async function (err, client) {
+    if (err)
+      console.log('error');
+    else
+
+    function orderList(){
+
+      return new Promise(async(resolve,reject)=>{
+       let orders=await client.db('shopping').collection('orders').find({userId:ObjectId(userId)}).toArray()
+        console.log(orders);
+        resolve(orders)
+      
+      })
+
+
+    }
+    let orders=await orderList()
+  
+    
+      res.render('user/orders',{ orders,user:req.session.user})
+
+
+  })
+  
+})
+
+router.get('/view-ordered-product/:id',(req,res)=>{
+  let orderId=req.params
+  console.log(orderId);
+
+  MongoClient.connect('mongodb://localhost:27017', function (err, client) {
+    if (err)
+      console.log('error');
+    else
+    function getorderedProducts(){
+
+
+      return new Promise(async(resolve,reject)=>{
+
+      
+      let orderedItems=await client.db('shopping').collection('orders').aggregate([
+          {
+            $match:{_id:ObjectId(orderId)}
+          },
+          {
+            $unwind:'$products'
+          },
+          {
+            $project:{
+              items:'$products.items',
+              quantity:'$products.quantity'
+            }
+          },
+          {
+            $lookup:{
+              from:'Products',
+              localField:'items',
+              foreignField:'_id',
+              as:'product'
+            }
+          },
+          {
+            $project:{
+              items:1,quantity:1,product:{$arrayElemAt:['$product',0]}
+            }
+          }
+      ]).toArray()
+      
+      resolve(orderedItems)
+    })
+    }
+     getorderedProducts().then((products)=>{
+      console.log(products);
+      res.render('user/view-ordered-product',{products,user:req.session.user})
+     })
+  })
+  
+})
 
 module.exports = router;

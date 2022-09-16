@@ -1,0 +1,38 @@
+<section>
+    <div class="container">
+        <div class="row m-5 ml-auto">
+            <h3>Ordered Products</h3>
+        </div>
+        
+        <table class="table mt-5">
+  <thead>
+     <tr>
+      <th scope="col">#</th>
+      <th scope="col">Title</th>
+      <th scope="col">Category</th>
+      <th scope="col">Description</th>
+      <th scope="col">Quantity</th>
+      <th scope="col">Price</th>
+      <th>Image</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each products}}
+
+    
+    
+    <tr>
+      <th scope="row">*</th>
+      <td>{{this.product.Name}}</td>
+      <td>{{this.product.category}} </td>
+      <td>{{this.product.Description}}</td>
+      <td>{{this.quantity}}</td>
+      <td>Rs.{{this.product.price}}</td>
+      <td><img style="width:50px;height:70px" src="/product-images/{{this.product._id}}.jpg" alt=""></td>
+      
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+    </div>
+</section>
