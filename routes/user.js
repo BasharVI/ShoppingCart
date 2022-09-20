@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { response, Router } = require('express');
 const { ObjectId } = require('mongodb');
 const session = require('express-session');
+const Razorpay=require('razorpay')
 var MongoClient = require('mongodb').MongoClient
 const verifyLogin = (req, res, next) => {
   if (req.session.loggedIn) {
@@ -12,6 +13,12 @@ const verifyLogin = (req, res, next) => {
     res.redirect('/login')
   }
 }
+
+var instance = new Razorpay({
+  key_id: 'rzp_test_qeyqdQojKS040o',
+  key_secret: 'FqpYRlQPGOQphrqUGdhXjsU5',
+});
+
 
 /* GET home page. */
 
@@ -646,16 +653,52 @@ router.post('/place-order',verifyLogin,(req,res)=>{
         client.db('shopping').collection('orders').insertOne(orderObj).then((response)=>{
           console.log(response);
           client.db('shopping').collection('cart').deleteOne({user:ObjectId(req.body.userId)})
-          resolve()
+          resolve(response)
         })
       })
     }
-    placeOrders().then((response)=>{
-      console.log(response);
-      res.json({status:true})
+    placeOrders().then(async (response)=>{
+      let order=await client.db('shopping').collection('orders').findOne({_id:ObjectId(response.insertedId)})
+      console.log(order);
+      let total=order.totalAmount
+      console.log(response); 
+      let orderId=response.insertedId
+      console.log(orderId);
+      
+      // console.log(total); 
+    
+      if(req.body['payment method']==='COD'){  
+        res.json({codSuccess:true}) 
+      }else{ 
+         
+        function generateRazorpay(){
+
+          return new Promise((resolve,reject)=>{
+            var options = {
+              amount: total,  // amount in the smallest currency unit
+              currency: "INR",
+              receipt: ""+orderId
+            };
+            instance.orders.create(options, function(err, order) {
+              if (err){
+                console.log(err);
+              }else{
+                resolve(order)
+              }
+              
+            });
+          })
+
+        }
+        generateRazorpay().then((response)=>{
+          console.log(response);
+          res.json(response)
+        })
+      }
+      
 
     })
-       
+        
 
   })
 
@@ -734,7 +777,7 @@ router.get('/view-ordered-product/:id',(req,res)=>{
           {
             $project:{
               items:1,quantity:1,product:{$arrayElemAt:['$product',0]}
-            }
+            } 
           }
       ]).toArray()
       
@@ -747,6 +790,10 @@ router.get('/view-ordered-product/:id',(req,res)=>{
      })
   })
   
+})
+
+router.post('/verify-payment',(req,res)=>{
+  console.log(req.body);
 })
 
 module.exports = router;

@@ -1,8 +1,8 @@
 <section>
     <div class="col-md-4 details mt-5 ml-5">
         <h4>Enter Details</h4>
-    <div class="container mt-5">
-        
+        <div class="container mt-5">
+
             <form action="" id="checkout-form">
                 <label for="address">Address</label>
                 <textarea rows="3" cols="30" name="address" class="form-control"></textarea>
@@ -14,8 +14,8 @@
                 <input type="tel" name="mobile" class="form-control">
 
                 <input type="text" name="userId" value="{{user._id}}" hidden>
-                
-            
+
+
         </div>
     </div>
     <div class="col-md-4">
@@ -25,10 +25,10 @@
             <div class="payment">
                 <p>Payment method</p>
                 <label class="radio-inline">
-                <input type="radio" name="payment method" value="COD">COD
+                    <input type="radio" name="payment method" value="COD">COD
                 </label>
                 <label class="radio-inline">
-                <input type="radio" name="payment method" value="ONLINE">Online payment
+                    <input type="radio" name="payment method" value="ONLINE">Online payment
                 </label>
                 <button class="btn btn-primary float-right">Checkout</button>
             </div>
@@ -36,21 +36,73 @@
     </div>
     </form>
 </section>
+
 <script>
-    $('#checkout-form').submit((e)=>{
+    $('#checkout-form').submit((e) => {
         e.preventDefault()
-        $.ajax({
-            url:'/place-order',
-            method:'post',
-            data:$('#checkout-form').serialize(),
-            success:(response)=>{
-                
+        $.ajax({ 
+            url: '/place-order',
+            method: 'post',
+            data: $('#checkout-form').serialize(),
+            success: (response) => {
+
                 alert('order placed')
-                if(response.status){
-                    location.href='/ordersuccess'
+                console.log(response)
+                if (response.codSuccess) {
+                    location.href = '/ordersuccess'
+                } else {
+                    razorpayPayments(response)
                 }
-                
+
             }
         })
     })
+    
+
+    function razorpayPayments(order) {
+        var options = {
+            "key": "rzp_test_qeyqdQojKS040o", // Enter the Key ID generated from the Dashboard
+            "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "currency": "INR",
+            "name": "Shopping Cart",
+            "description": "Test Transaction",
+            "image": "https://example.com/your_logo",
+            "order_id": order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "callback_url": "https://eneqd3r9zrjok.x.pipedream.net/",
+            "handler": function (response) {
+                alert(response.razorpay_payment_id);
+                alert(response.razorpay_order_id);
+                alert(response.razorpay_signature)
+
+                verifypayment(response,order)
+            },
+    
+    
+            "prefill": {
+                "name": "Gaurav Kumar",
+                "email": "gaurav.kumar@example.com",
+                "contact": "9999999999"
+            },
+            "notes": {
+                "address": "Razorpay Corporate Office"
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+    }
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+
+    function verifypayment(payment,order){
+        $.ajax({
+            url:'/verify-payment',
+            method:'post',
+            data:{
+                payment,
+                order
+            }
+        })
+
+    }
 </script>
