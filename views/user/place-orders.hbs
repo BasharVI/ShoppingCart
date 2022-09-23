@@ -38,6 +38,7 @@
 </section>
 
 <script>
+    
     $('#checkout-form').submit((e) => {
         e.preventDefault()
         $.ajax({ 
@@ -90,9 +91,12 @@
                 "color": "#3399cc"
             }
         };
+        console.log(options)
+        var rzp1 =new Razorpay(options)
+        rzp1.open();
     }
-    var rzp1 = new Razorpay(options);
-    rzp1.open();
+    
+
 
     function verifypayment(payment,order){
         $.ajax({
@@ -100,7 +104,7 @@
             method:'post',
             data:{
                 payment,
-                order
+                order 
             }
         })
 

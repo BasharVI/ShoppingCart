@@ -709,7 +709,7 @@ router.get('/ordersuccess',(req,res)=>{
   res.render('user/ordersuccess',{user:req.session.user})
 })
 router.get('/orders',verifyLogin,(req,res)=>{
-
+ 
   let userId=req.session.user._id
   console.log(userId);
 
@@ -794,6 +794,7 @@ router.get('/view-ordered-product/:id',(req,res)=>{
 
 router.post('/verify-payment',(req,res)=>{
   console.log(req.body);
+  console.log('payment verified');
 })
 
 module.exports = router;
