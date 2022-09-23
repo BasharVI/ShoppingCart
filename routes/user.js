@@ -616,7 +616,7 @@ router.post('/place-order',verifyLogin,(req,res)=>{
           }
 
 
-        ]).toArray()
+        ]).toArray() 
 
         resolve(totalamount[0].total)
 
@@ -675,7 +675,7 @@ router.post('/place-order',verifyLogin,(req,res)=>{
 
           return new Promise((resolve,reject)=>{
             var options = {
-              amount: total,  // amount in the smallest currency unit
+              amount: total*100,  // amount in the smallest currency unit
               currency: "INR",
               receipt: ""+orderId
             };
@@ -794,7 +794,53 @@ router.get('/view-ordered-product/:id',(req,res)=>{
 
 router.post('/verify-payment',(req,res)=>{
   console.log(req.body);
-  console.log('payment verified');
+  let details= req.body
+  let orderId=req.body['order[receipt]']
+  MongoClient.connect('mongodb://localhost:27017', function (err, client) {
+    if (err){
+      console.log('error');
+    }else{
+
+      function verifypayment(){
+        
+        return new Promise((resolve, reject)=>{
+          const crypto=require('crypto')
+          let hmac=crypto.createHmac('sha256','FqpYRlQPGOQphrqUGdhXjsU5')
+          hmac.update(details['payment[razorpay_order_id]']+ "|" +details['payment[razorpay_payment_id]'])
+          hmac=hmac.digest('hex')
+          if(hmac==details['payment[razorpay_signature]']){
+            resolve()
+          }else{
+            reject()
+          }
+        })
+      }
+      verifypayment().then(()=>{
+        function changepaymentStatus(){
+          return new Promise((resolve,reject)=>{
+          client.db('shopping').collection('orders')
+          .updateOne({_id:ObjectId(orderId)},
+          {
+            $set:{
+              status:'placed'
+            }
+          }).then(()=>{
+            resolve()
+          })
+        })
+
+      }
+      changepaymentStatus().then(()=>{
+        res.json({status:true})
+         })
+
+
+      }).catch((err)=>{
+        res.json({status:false})
+      })
+
+    }})
+
 })
 
 module.exports = router;

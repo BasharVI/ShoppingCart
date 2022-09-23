@@ -105,6 +105,14 @@
             data:{
                 payment,
                 order 
+            },
+            success:(response)=>{
+                console.log(response)
+                if (response.status){
+                    location.href = '/ordersuccess'
+                }else{
+                    alert('Payment Failed')
+                }
             }
         })
 
