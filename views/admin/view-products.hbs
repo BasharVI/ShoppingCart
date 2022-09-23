@@ -1,9 +1,15 @@
+<script>
+  $(document).ready( function () {
+    $('#productsview').DataTable();
+} );
+</script>
+
 <section>
     <div class="container">
-        <div class="row mt-4">
+        <div class="row mt-3 p-5">
             <a href="/admin/add-products" class="btn btn-success ml-auto">Add products</a>
         </div>
-        <table class="table mt-5">
+        <table class="table mt-5" id="productsview">
   <thead>
      <tr>
       <th scope="col">#</th>
@@ -11,6 +17,7 @@
       <th scope="col">Category</th>
       <th scope="col">Description</th>
       <th>Image</th>
+      <th scope="col">Option</th>
     </tr>
   </thead>
   <tbody>
