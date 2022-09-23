@@ -236,9 +236,15 @@ router.get('/cart', verifyLogin, (req, res) => {
     }
 
     function getTotalAmount() {
+
+      let totalamount =0
+
+      if(products.length>0){
+
+      
       let user = req.session.user._id
       return new Promise(async (resolve, reject) => {
-        let totalamount = await client.db('shopping').collection('cart').aggregate([
+        totalamount = await client.db('shopping').collection('cart').aggregate([
           {
             $match: { user: ObjectId(user) }
           },
@@ -281,6 +287,7 @@ router.get('/cart', verifyLogin, (req, res) => {
 
 
       })
+    }
     }
 
     let total = await getTotalAmount()

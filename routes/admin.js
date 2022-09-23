@@ -180,6 +180,31 @@ router.post('/add-products',(req,res,next)=>{
   
 })
 
+router.get('/all-orders',(req,res)=>{
+
+  MongoClient.connect('mongodb://localhost:27017',function(err,client){
+    if (err)
+    console.log('error');
+    else
+    function getallOrders(){
+      return new Promise ((resolve,reject)=>{
+
+       let allOrders= client.db('shopping').collection('orders').find().toArray()
+       resolve (allOrders)
+      
+      })
+     
+    }getallOrders().then((response)=>{
+      orders=response
+      res.render('admin/all-orders',{admin:true,orders})
+    })
+      
+    
+    
+  })
+  
+})
+
 
 
 
